@@ -27,9 +27,11 @@ def save_to_csv(dataframe, csv_path):
     dataframe.to_csv(csv_path, index=False)
 
 def main():
-    st.title("Suivi des Remboursements Ameli")
+    st.set_page_config(page_title="Suivi des Remboursements Ameli", layout="wide")
+    st.title("📄 Suivi des Remboursements Ameli")
+    st.markdown("Importez vos relevés Ameli au format PDF et suivez vos remboursements.")
     
-    uploaded_file = st.file_uploader("Importez votre relevé Ameli (PDF)", type="pdf")
+    uploaded_file = st.file_uploader("📤 Importez votre relevé Ameli (PDF)", type="pdf")
     
     if uploaded_file is not None:
         pdf_path = f"temp_{uploaded_file.name}"
@@ -39,17 +41,18 @@ def main():
         data = extract_data_from_pdf(pdf_path)
         
         if not data.empty:
-            st.success("Données extraites avec succès !")
+            st.success("✅ Données extraites avec succès !")
             st.dataframe(data)
-            save_to_csv(data, "remboursements.csv")
+            csv_data = data.to_csv(index=False).encode('utf-8')
+            
             st.download_button(
-                label="Télécharger le fichier CSV",
-                data=data.to_csv(index=False),
+                label="📥 Télécharger le fichier CSV",
+                data=csv_data,
                 file_name="remboursements.csv",
                 mime="text/csv"
             )
         else:
-            st.error("Aucune donnée de remboursement trouvée dans ce fichier.")
+            st.error("⚠️ Aucune donnée de remboursement trouvée dans ce fichier.")
         
         os.remove(pdf_path)  # Nettoyage du fichier temporaire
 
