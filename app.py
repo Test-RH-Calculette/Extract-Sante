@@ -2,9 +2,10 @@ import pandas as pd
 import pdfplumber
 import os
 import streamlit as st
+import re
 
 def extract_data_from_pdf(pdf_path):
-    """Extracts reimbursement data from Ameli PDF statements."""
+    """Extracts reimbursement data from Ameli-like PDF statements."""
     data = []
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
@@ -12,19 +13,15 @@ def extract_data_from_pdf(pdf_path):
             if text:
                 lines = text.split('\n')
                 for line in lines:
-                    if 'REMBOURSEMENT' in line.upper():
-                        parts = line.split()
-                        if len(parts) >= 3:
-                            date = parts[0]  # Assuming first part is date
-                            montant = parts[-1].replace('€', '').replace(',', '.')  # Last part is amount
-                            description = ' '.join(parts[1:-1])  # Middle part is description
-                            data.append([date, description, float(montant)])
+                    match = re.search(r'(\d{2}/\d{2}/\d{4})\s+([A-ZÉÀÙÂÊÎÔÛÄËÏÖÜÇ \-]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d]+)%\s+([\d,\.]+)', line)
+                    if match:
+                        date = match.group(1)
+                        prestation = match.group(2).strip()
+                        montant_base = float(match.group(3).replace(',', '.'))
+                        montant_rembourse = float(match.group(6).replace(',', '.'))
+                        data.append([date, prestation, montant_base, montant_rembourse])
     
-    return pd.DataFrame(data, columns=['Date', 'Description', 'Montant'])
-
-def save_to_csv(dataframe, csv_path):
-    """Saves extracted data to a CSV file."""
-    dataframe.to_csv(csv_path, index=False)
+    return pd.DataFrame(data, columns=['Date', 'Prestation', 'Base Remb.', 'Montant Remb.'])
 
 def main():
     st.set_page_config(page_title="Suivi des Remboursements Ameli", layout="wide")
