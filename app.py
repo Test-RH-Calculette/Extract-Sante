@@ -5,7 +5,7 @@ import streamlit as st
 import re
 
 def extract_data_from_pdf(pdf_path):
-    """Extracts reimbursement data from Ameli-like PDF statements."""
+    """Extracts full reimbursement data from Ameli-like PDF statements."""
     data = []
     with pdfplumber.open(pdf_path) as pdf:
         for page in pdf.pages:
@@ -13,15 +13,19 @@ def extract_data_from_pdf(pdf_path):
             if text:
                 lines = text.split('\n')
                 for line in lines:
-                    match = re.search(r'(\d{2}/\d{2}/\d{4})\s+([A-ZÉÀÙÂÊÎÔÛÄËÏÖÜÇ \-]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d]+)%\s+([\d,\.]+)', line)
+                    match = re.search(r'(\d{2}/\d{2}/\d{4})\s+([A-ZÉÀÙÂÊÎÔÛÄËÏÖÜÇ \-]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d]+)%\s+([\d,\.]+)\s+([\d]+)%\s+([\d,\.]+)', line)
                     if match:
                         date = match.group(1)
                         prestation = match.group(2).strip()
-                        montant_base = float(match.group(3).replace(',', '.'))
-                        montant_rembourse = float(match.group(6).replace(',', '.'))
-                        data.append([date, prestation, montant_base, montant_rembourse])
+                        montant_paye = float(match.group(3).replace(',', '.'))
+                        base_remb = float(match.group(4).replace(',', '.'))
+                        taux_remb = int(match.group(5))
+                        montant_verse = float(match.group(6).replace(',', '.'))
+                        taux_comp = int(match.group(7))
+                        montant_comp = float(match.group(8).replace(',', '.'))
+                        data.append([date, prestation, montant_paye, base_remb, taux_remb, montant_verse, taux_comp, montant_comp])
     
-    return pd.DataFrame(data, columns=['Date', 'Prestation', 'Base Remb.', 'Montant Remb.'])
+    return pd.DataFrame(data, columns=['Date', 'Prestation', 'Montant Payé', 'Base Remb.', 'Taux Remb.', 'Montant Versé', 'Taux Comp.', 'Montant Comp.'])
 
 def main():
     st.set_page_config(page_title="Suivi des Remboursements Ameli", layout="wide")
