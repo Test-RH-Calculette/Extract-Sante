@@ -23,6 +23,18 @@ def extract_data_from_pdf(pdf_path):
                         montant_verse = float(match.group(6).replace(',', '.'))
                         taux_comp = int(match.group(7))
                         montant_comp = float(match.group(8).replace(',', '.'))
+                        
+                        # Affichage des valeurs extraites
+                        st.write(f"📅 Date : {date}")
+                        st.write(f"💊 Prestation : {prestation}")
+                        st.write(f"💰 Montant Payé : {montant_paye} €")
+                        st.write(f"📌 Base de Remboursement : {base_remb} €")
+                        st.write(f"🔹 Taux de Remboursement : {taux_remb} %")
+                        st.write(f"💵 Montant Versé : {montant_verse} €")
+                        st.write(f"🔸 Taux Complémentaire : {taux_comp} %")
+                        st.write(f"💶 Montant Complémentaire : {montant_comp} €")
+                        st.write("---")
+                        
                         data.append([date, prestation, montant_paye, base_remb, taux_remb, montant_verse, taux_comp, montant_comp])
     
     return pd.DataFrame(data, columns=['Date', 'Prestation', 'Montant Payé', 'Base Remb.', 'Taux Remb.', 'Montant Versé', 'Taux Comp.', 'Montant Comp.'])
